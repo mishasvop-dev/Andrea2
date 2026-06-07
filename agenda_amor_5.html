@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nuestra Agenda ♥</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #c9536a;
+    --blush: #f4c6cc;
+    --cream: #fff8f5;
+    --dark: #2a1a1f;
+    --muted: #9a7a82;
+    --card-bg: #ffffff;
+    --gold: #c8975a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--cream);
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(201,83,106,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(244,198,204,0.25) 0%, transparent 50%);
+    font-family: 'Lato', sans-serif;
+    color: var(--dark);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+    position: relative;
+  }
+  header::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 2px;
+    background: var(--rose);
+    margin: 1.2rem auto 0;
+  }
+  .header-tag {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    color: var(--dark);
+    line-height: 1.1;
+  }
+  header h1 span { color: var(--rose); font-style: italic; }
+  .heart-deco { font-size: 1.2rem; opacity: 0.5; margin: 0 0.4rem; }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.2rem 4rem;
+  }
+
+  /* ADD BUTTON */
+  .fab {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--rose);
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 0.85rem 1.8rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    margin: 0 auto 2.5rem;
+    box-shadow: 0 6px 24px rgba(201,83,106,0.35);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .fab:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(201,83,106,0.4); }
+  .fab svg { width: 18px; height: 18px; }
+
+  /* MODAL */
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(42,26,31,0.55);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 2.2rem;
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .modal h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--rose);
+    margin-bottom: 1.4rem;
+  }
+  .modal label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+    margin-top: 1rem;
+  }
+  .modal input[type="text"],
+  .modal input[type="date"],
+  .modal textarea {
+    width: 100%;
+    border: 1.5px solid #f0dfe2;
+    border-radius: 10px;
+    padding: 0.7rem 1rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    color: var(--dark);
+    background: var(--cream);
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+  }
+  .modal input:focus, .modal textarea:focus { border-color: var(--rose); }
+  .modal textarea { height: 90px; }
+
+  /* Photo upload area */
+  .photo-upload {
+    border: 2px dashed #f0c4cb;
+    border-radius: 12px;
+    padding: 1.2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    background: var(--cream);
+    position: relative;
+  }
+  .photo-upload:hover { border-color: var(--rose); background: #fff4f6; }
+  .photo-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .photo-upload span { font-size: 0.85rem; color: var(--muted); }
+  .photo-upload .upload-icon { font-size: 1.8rem; display: block; margin-bottom: 0.3rem; }
+  #preview-img {
+    display: none;
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 0.8rem;
+  }
+
+  .emoji-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.4rem;
+  }
+  .emoji-btn {
+    background: var(--cream);
+    border: 1.5px solid #f0dfe2;
+    border-radius: 8px;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .emoji-btn.selected, .emoji-btn:hover { border-color: var(--rose); background: #fdeef1; }
+
+  .modal-actions { display: flex; gap: 0.8rem; margin-top: 1.6rem; }
+  .btn-save {
+    flex: 1;
+    background: var(--rose);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.8rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-save:hover { background: #b5455c; }
+  .btn-cancel {
+    background: transparent;
+    border: 1.5px solid #f0dfe2;
+    border-radius: 10px;
+    padding: 0.8rem 1.2rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    color: var(--muted);
+    transition: border-color 0.2s;
+  }
+  .btn-cancel:hover { border-color: var(--muted); }
+
+  /* MEMORIES GRID */
+  .section-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    text-align: center;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(42,26,31,0.07);
+    transition: transform 0.25s, box-shadow 0.25s;
+    animation: fadeIn 0.4s ease both;
+    position: relative;
+    cursor: pointer;
+  }
+  @keyframes fadeIn {
+    from { opacity:0; transform: scale(0.96) translateY(10px); }
+    to   { opacity:1; transform: scale(1) translateY(0); }
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(42,26,31,0.13); }
+
+  .card-photo {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    background: linear-gradient(135deg, #fdeef1, #f9d8de);
+  }
+  .card-photo-placeholder {
+    width: 100%;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    background: linear-gradient(135deg, #fdeef1, #f9d8de);
+  }
+  .card-body { padding: 1.2rem 1.3rem 1.4rem; }
+  .card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .card-date {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .card-mood { font-size: 1.2rem; }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: var(--dark);
+    margin-bottom: 0.4rem;
+  }
+  .card-note {
+    font-size: 0.87rem;
+    color: var(--muted);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  /* 3-DOTS MENU */
+  .card-menu-wrap {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  .card-dots {
+    background: rgba(255,255,255,0.88);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.14);
+    transition: background 0.15s;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .card-dots span {
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--dark);
+  }
+  .card:hover .card-dots { display: flex; }
+  .card-dots:hover { background: #fff; }
+
+  .card-dropdown {
+    display: none;
+    position: absolute;
+    top: 36px;
+    right: 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 28px rgba(42,26,31,0.16);
+    overflow: hidden;
+    min-width: 140px;
+    z-index: 50;
+    animation: dropIn 0.18s ease;
+  }
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .card-dropdown.open { display: block; }
+  .card-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.88rem;
+    cursor: pointer;
+    color: var(--dark);
+    transition: background 0.15s;
+    text-align: left;
+  }
+  .card-dropdown button:hover { background: var(--cream); }
+  .card-dropdown button.danger { color: var(--rose); }
+  .card-dropdown button.danger:hover { background: #fdeef1; }
+  .card-dropdown hr { border: none; border-top: 1px solid #f0dfe2; margin: 0; }
+
+  /* VIEW DETAIL OVERLAY */
+  .view-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(42,26,31,0.65);
+    backdrop-filter: blur(6px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .view-overlay.open { display: flex; animation: fadeBg 0.25s ease; }
+  @keyframes fadeBg { from { opacity:0; } to { opacity:1; } }
+
+  .view-card {
+    background: var(--card-bg);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: popIn 0.3s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
+    scrollbar-width: none;
+  }
+  .view-card::-webkit-scrollbar { display: none; }
+  @keyframes popIn {
+    from { opacity:0; transform: scale(0.88); }
+    to   { opacity:1; transform: scale(1); }
+  }
+
+  .view-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    color: var(--dark);
+    z-index: 10;
+    transition: background 0.15s, transform 0.15s;
+  }
+  .view-close:hover { background: #fff; transform: scale(1.08); }
+
+  .view-photo {
+    width: 100%;
+    max-height: 320px;
+    object-fit: cover;
+    border-radius: 24px 24px 0 0;
+    display: block;
+    cursor: zoom-in;
+    transition: opacity 0.15s;
+  }
+  .view-photo:hover { opacity: 0.92; }
+
+  /* LIGHTBOX */
+  .lightbox {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(10,5,7,0.92);
+    z-index: 400;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; animation: fadeBg 0.2s ease; }
+  .lightbox img {
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 12px;
+    object-fit: contain;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.6);
+    animation: zoomIn 0.25s cubic-bezier(.34,1.4,.64,1);
+    pointer-events: none;
+  }
+  @keyframes zoomIn {
+    from { opacity:0; transform: scale(0.82); }
+    to   { opacity:1; transform: scale(1); }
+  }
+  .lightbox-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .lightbox-close:hover { background: rgba(255,255,255,0.22); }
+  .view-photo-placeholder {
+    width: 100%;
+    height: 220px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5rem;
+    background: linear-gradient(135deg, #fdeef1, #f9d8de);
+    border-radius: 24px 24px 0 0;
+  }
+  .view-body { padding: 1.8rem 2rem 2.2rem; }
+  .view-meta {
+    display: flex; align-items: center; gap: 0.7rem;
+    margin-bottom: 0.8rem;
+  }
+  .view-date {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--cream);
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+  }
+  .view-mood { font-size: 1.5rem; }
+  .view-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    color: var(--dark);
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+  .view-divider {
+    width: 40px; height: 2px;
+    background: var(--blush);
+    margin-bottom: 1rem;
+  }
+  .view-note {
+    font-size: 0.97rem;
+    color: #5a3d45;
+    line-height: 1.75;
+    white-space: pre-wrap;
+  }
+  .view-actions {
+    display: flex; gap: 0.7rem;
+    margin-top: 1.8rem;
+  }
+  .view-btn-edit {
+    flex: 1;
+    background: var(--rose);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .view-btn-edit:hover { background: #b5455c; }
+  .view-btn-delete {
+    background: transparent;
+    border: 1.5px solid #f0c4cb;
+    border-radius: 10px;
+    padding: 0.75rem 1.1rem;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: var(--rose);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .view-btn-delete:hover { background: #fdeef1; border-color: var(--rose); }
+
+  /* EMOJI CASCADE */
+  .emoji-cascade {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-size: 1.6rem;
+    animation: cascadeFall linear forwards;
+    user-select: none;
+  }
+  @keyframes cascadeFall {
+    0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+    80%  { opacity: 0.8; }
+    100% { opacity: 0; transform: translateY(260px) rotate(var(--rot)) scale(0.6); }
+  }
+  .empty {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+  .empty p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.1rem; }
+
+  /* COUNTER */
+  .counter {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+  }
+  .counter strong { color: var(--rose); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-tag">para siempre</div>
+  <h1><span class="heart-deco">♥</span> Nuestra <span>Agenda</span> <span class="heart-deco">♥</span></h1>
+</header>
+
+<main>
+  <button class="fab" onclick="openModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Agregar momento
+  </button>
+
+  <div class="counter" id="counter"></div>
+
+  <div class="grid" id="grid"></div>
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="foto completa">
+</div>
+
+<!-- VIEW DETAIL OVERLAY -->
+<div class="view-overlay" id="view-overlay" onclick="closeViewOnOverlay(event)">
+  <div class="view-card" id="view-card">
+    <button class="view-close" onclick="closeView()">✕</button>
+    <div id="view-content"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeOnOverlay(event)">
+  <div class="modal">
+    <h2 id="modal-title">✨ Nuevo Momento</h2>
+
+    <label>Título del momento</label>
+    <input type="text" id="inp-title" placeholder="Ej. Nuestro primer viaje…">
+
+    <label>Fecha</label>
+    <input type="date" id="inp-date">
+
+    <label>Nota / Memoria</label>
+    <textarea id="inp-note" placeholder="Escribe cómo te sentiste, qué pasó, qué quieres recordar…"></textarea>
+
+    <label>Foto</label>
+    <div class="photo-upload" id="photo-upload-area">
+      <input type="file" id="inp-photo" accept="image/*" onchange="previewPhoto(event)">
+      <span class="upload-icon">📷</span>
+      <span>Toca para elegir una foto</span>
+    </div>
+    <div id="preview-wrap" style="display:none; position:relative; margin-top:0.8rem;">
+      <img id="preview-img" alt="preview" style="width:100%; max-height:160px; object-fit:cover; border-radius:8px; display:block;">
+      <button type="button" onclick="removePhoto()" style="
+        position:absolute; top:8px; right:8px;
+        background:rgba(42,26,31,0.7); color:#fff;
+        border:none; border-radius:50%;
+        width:30px; height:30px;
+        font-size:0.85rem; cursor:pointer;
+        display:flex; align-items:center; justify-content:center;
+      " title="Quitar foto">✕</button>
+    </div>
+
+    <label>Estado de ánimo</label>
+    <div class="emoji-row" id="emoji-row">
+      <button class="emoji-btn" onclick="selectMood(this,'❤️')">❤️</button>
+      <button class="emoji-btn" onclick="selectMood(this,'😊')">😊</button>
+      <button class="emoji-btn" onclick="selectMood(this,'🥰')">🥰</button>
+      <button class="emoji-btn" onclick="selectMood(this,'😂')">😂</button>
+      <button class="emoji-btn" onclick="selectMood(this,'😢')">😢</button>
+      <button class="emoji-btn" onclick="selectMood(this,'🌟')">🌟</button>
+      <button class="emoji-btn" onclick="selectMood(this,'🌸')">🌸</button>
+      <button class="emoji-btn" onclick="selectMood(this,'🌙')">🌙</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" id="btn-save" onclick="saveMemory()">Guardar ♥</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let memories = JSON.parse(localStorage.getItem('memories') || '[]');
+  let selectedMood = '❤️';
+  let photoData = null;
+  let editingId = null;
+
+  // Close any open dropdown when clicking outside
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.card-menu-wrap')) {
+      document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+  });
+
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+
+  // Close lightbox with Escape key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeLightbox(); closeView(); }
+  });
+
+  function openView(id) {
+    const m = memories.find(x => x.id === id);
+    if (!m) return;
+    const photoHTML = m.photo
+      ? `<img class="view-photo" src="${m.photo}" alt="${m.title}" onclick="openLightbox('${m.photo}')" title="Ver imagen completa">`
+      : `<div class="view-photo-placeholder">${m.mood}</div>`;
+    document.getElementById('view-content').innerHTML = `
+      ${photoHTML}
+      <div class="view-body">
+        <div class="view-meta">
+          <span class="view-date">${formatDate(m.date)}</span>
+          <span class="view-mood">${m.mood}</span>
+        </div>
+        <div class="view-title">${m.title}</div>
+        <div class="view-divider"></div>
+        ${m.note ? `<div class="view-note">${m.note}</div>` : ''}
+        <div class="view-actions">
+          <button class="view-btn-edit" onclick="closeView(); openModal(${m.id})">✏️ Editar</button>
+          <button class="view-btn-delete" onclick="closeView(); deleteMemory(${m.id})">🗑️ Eliminar</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('view-overlay').classList.add('open');
+  }
+
+  function closeView() {
+    document.getElementById('view-overlay').classList.remove('open');
+  }
+
+  function closeViewOnOverlay(e) {
+    if (e.target === document.getElementById('view-overlay')) closeView();
+  }
+
+  function handleCardClick(e, id) {
+    if (e.target.closest('.card-menu-wrap')) return;
+    openView(id);
+  }
+
+  function toggleMenu(id, event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('dd-' + id);
+    const isOpen = dropdown.classList.contains('open');
+    document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!isOpen) dropdown.classList.add('open');
+  }
+
+  function openModal(id = null) {
+    editingId = id;
+    const modal = document.querySelector('.modal');
+    document.getElementById('modal-title').textContent = id ? '✏️ Editar Momento' : '✨ Nuevo Momento';
+    document.getElementById('btn-save').textContent = id ? 'Guardar cambios ♥' : 'Guardar ♥';
+
+    if (id) {
+      const m = memories.find(x => x.id === id);
+      document.getElementById('inp-title').value = m.title;
+      document.getElementById('inp-date').value = m.date;
+      document.getElementById('inp-note').value = m.note || '';
+      selectedMood = m.mood;
+      photoData = m.photo || null;
+      if (m.photo) {
+        document.getElementById('preview-img').src = m.photo;
+        document.getElementById('preview-wrap').style.display = 'block';
+        document.getElementById('photo-upload-area').style.display = 'none';
+      } else {
+        document.getElementById('preview-wrap').style.display = 'none';
+        document.getElementById('photo-upload-area').style.display = 'block';
+      }
+      document.querySelectorAll('.emoji-btn').forEach(b => {
+        b.classList.toggle('selected', b.textContent.trim() === m.mood);
+      });
+    } else {
+      document.getElementById('inp-title').value = '';
+      document.getElementById('inp-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('inp-note').value = '';
+      document.getElementById('inp-photo').value = '';
+      document.getElementById('preview-img').src = '';
+      document.getElementById('preview-wrap').style.display = 'none';
+      document.getElementById('photo-upload-area').style.display = 'block';
+      selectedMood = '❤️';
+      photoData = null;
+      document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelector('.emoji-btn').classList.add('selected');
+    }
+
+    document.getElementById('overlay').classList.add('open');
+    document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('open');
+    editingId = null;
+  }
+
+  function closeOnOverlay(e) {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  }
+
+  function selectMood(btn, mood) {
+    selectedMood = mood;
+    document.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    launchEmojiCascade(mood, btn);
+  }
+
+  function launchEmojiCascade(emoji, sourceBtn) {
+    const rect = sourceBtn.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const count = 18;
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement('span');
+        el.className = 'emoji-cascade';
+        el.textContent = emoji;
+        const spread = 140;
+        const x = centerX + (Math.random() - 0.5) * spread;
+        const rot = (Math.random() - 0.5) * 60 + 'deg';
+        const duration = 1.2 + Math.random() * 0.8;
+        el.style.left = x + 'px';
+        el.style.top = centerY + 'px';
+        el.style.setProperty('--rot', rot);
+        el.style.animationDuration = duration + 's';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), duration * 1000);
+      }, i * 80);
+    }
+  }
+
+  function previewPhoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      photoData = ev.target.result;
+      document.getElementById('preview-img').src = photoData;
+      document.getElementById('preview-wrap').style.display = 'block';
+      document.getElementById('photo-upload-area').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto() {
+    photoData = null;
+    document.getElementById('inp-photo').value = '';
+    document.getElementById('preview-img').src = '';
+    document.getElementById('preview-wrap').style.display = 'none';
+    document.getElementById('photo-upload-area').style.display = 'block';
+  }
+
+  function saveMemory() {
+    const title = document.getElementById('inp-title').value.trim();
+    const date  = document.getElementById('inp-date').value;
+    const note  = document.getElementById('inp-note').value.trim();
+    if (!title) { alert('Escribe un título para el momento ♥'); return; }
+
+    if (editingId) {
+      const idx = memories.findIndex(m => m.id === editingId);
+      if (idx !== -1) {
+        memories[idx] = { ...memories[idx], title, date, note, mood: selectedMood, photo: photoData };
+      }
+    } else {
+      memories.unshift({ id: Date.now(), title, date, note, mood: selectedMood, photo: photoData });
+    }
+
+    save();
+    render();
+    closeModal();
+  }
+
+  function deleteMemory(id) {
+    document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
+    if (!confirm('¿Borrar este momento? 😢')) return;
+    memories = memories.filter(m => m.id !== id);
+    save();
+    render();
+  }
+
+  function save() {
+    localStorage.setItem('memories', JSON.stringify(memories));
+  }
+
+  function formatDate(str) {
+    if (!str) return '';
+    const [y, m, d] = str.split('-');
+    const months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return `${parseInt(d)} ${months[parseInt(m)-1]} ${y}`;
+  }
+
+  function render() {
+    const grid = document.getElementById('grid');
+    const counter = document.getElementById('counter');
+    counter.innerHTML = memories.length
+      ? `<strong>${memories.length}</strong> momento${memories.length !== 1 ? 's' : ''} guardado${memories.length !== 1 ? 's' : ''}`
+      : '';
+
+    if (!memories.length) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">🌸</div>
+        <p>Aún no hay momentos guardados.<br>¡Agrega el primero!</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = memories.map((m, i) => `
+      <div class="card" style="animation-delay:${i * 0.06}s" onclick="handleCardClick(event, ${m.id})">
+        ${m.photo
+          ? `<img class="card-photo" src="${m.photo}" alt="${m.title}">`
+          : `<div class="card-photo-placeholder">${m.mood}</div>`}
+
+        <div class="card-menu-wrap">
+          <button class="card-dots" onclick="toggleMenu(${m.id}, event)" title="Opciones">
+            <span></span><span></span><span></span>
+          </button>
+          <div class="card-dropdown" id="dd-${m.id}">
+            <button onclick="openModal(${m.id})">✏️ Editar</button>
+            <hr>
+            <button class="danger" onclick="deleteMemory(${m.id})">🗑️ Eliminar</button>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="card-date">${formatDate(m.date)}</span>
+            <span class="card-mood">${m.mood}</span>
+          </div>
+          <div class="card-title">${m.title}</div>
+          ${m.note ? `<div class="card-note">${m.note}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  render();
+</script>
+</body>
+</html>
